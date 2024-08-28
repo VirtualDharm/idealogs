@@ -7,8 +7,12 @@ export default function Home() {
   const [appData, setAppData] = useState({});
   const [selectedJokesUser, setSelectedJokesUser] = useState('all');
   const [selectedThoughtsUser, setSelectedThoughtsUser] = useState('all');
+  const [selectedFitnessUser, setSelectedFitnessUser] = useState('all');
+  const [selectedFinanceUser, setSelectedFinanceUser] = useState('all');
   const [highlightedJoke, setHighlightedJoke] = useState(null);
   const [highlightedThought, setHighlightedThought] = useState(null);
+  const [highlightedFitness, setHighlightedFitness] = useState(null);
+  const [highlightedFinance, setHighlightedFinance] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '' });
   const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
@@ -27,15 +31,17 @@ export default function Home() {
     async function loadAppData() {
       const jokes = await fetchData('jokes');
       const thoughts = await fetchData('thoughts');
+      const fitness = await fetchData('fitness');
+      const finance = await fetchData('finance');
 
       const combinedData = {};
-      jokes.forEach(({ user, id, texted }) => {
-        if (!combinedData[user]) combinedData[user] = { jokes: {}, thoughts: {} };
-        combinedData[user].jokes[id] = texted;
-      });
-      thoughts.forEach(({ user, id, texted }) => {
-        if (!combinedData[user]) combinedData[user] = { jokes: {}, thoughts: {} };
-        combinedData[user].thoughts[id] = texted;
+      const categories = { jokes, thoughts, fitness, finance };
+
+      Object.keys(categories).forEach((category) => {
+        categories[category].forEach(({ user, id, texted }) => {
+          if (!combinedData[user]) combinedData[user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {} };
+          combinedData[user][category][id] = texted;
+        });
       });
 
       setAppData(combinedData);
@@ -44,47 +50,24 @@ export default function Home() {
     loadAppData();
   }, []);
 
-  const getJokes = () => {
-    if (selectedJokesUser === 'all') {
-      const combinedJokes = {};
+  const getItems = (category, selectedUser) => {
+    if (selectedUser === 'all') {
+      const combinedItems = {};
       Object.keys(appData).forEach((user) => {
-        Object.entries(appData[user].jokes)
+        Object.entries(appData[user][category])
           .sort((a, b) => b[0] - a[0])
-          .forEach(([key, joke]) => {
-            combinedJokes[`${user}_${key}`] = { texted: joke, user };
+          .forEach(([key, item]) => {
+            combinedItems[`${user}_${key}`] = { texted: item, user };
           });
       });
-      return combinedJokes;
+      return combinedItems;
     }
-    return Object.entries(appData[selectedJokesUser].jokes)
+    return Object.entries(appData[selectedUser][category])
       .sort((a, b) => b[0] - a[0])
       .reduce(
-        (acc, [key, joke]) => ({
+        (acc, [key, item]) => ({
           ...acc,
-          [`${selectedJokesUser}_${key}`]: { texted: joke, user: selectedJokesUser },
-        }),
-        {}
-      );
-  };
-
-  const getThoughts = () => {
-    if (selectedThoughtsUser === 'all') {
-      const combinedThoughts = {};
-      Object.keys(appData).forEach((user) => {
-        Object.entries(appData[user].thoughts)
-          .sort((a, b) => b[0] - a[0])
-          .forEach(([key, thought]) => {
-            combinedThoughts[`${user}_${key}`] = { texted: thought, user };
-          });
-      });
-      return combinedThoughts;
-    }
-    return Object.entries(appData[selectedThoughtsUser].thoughts)
-      .sort((a, b) => b[0] - a[0])
-      .reduce(
-        (acc, [key, thought]) => ({
-          ...acc,
-          [`${selectedThoughtsUser}_${key}`]: { texted: thought, user: selectedThoughtsUser },
+          [`${selectedUser}_${key}`]: { texted: item, user: selectedUser },
         }),
         {}
       );
@@ -99,6 +82,8 @@ export default function Home() {
 
   const jokesCount = getCounts('jokes');
   const thoughtsCount = getCounts('thoughts');
+  const fitnessCount = getCounts('fitness');
+  const financeCount = getCounts('finance');
 
   const sortUsersByCount = (counts) => {
     return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
@@ -106,6 +91,8 @@ export default function Home() {
 
   const sortedJokesUsers = sortUsersByCount(jokesCount);
   const sortedThoughtsUsers = sortUsersByCount(thoughtsCount);
+  const sortedFitnessUsers = sortUsersByCount(fitnessCount);
+  const sortedFinanceUsers = sortUsersByCount(financeCount);
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -126,16 +113,16 @@ export default function Home() {
   };
 
   const handleJoinCall = () => {
-    console.log(`1`)
     if (roomName.trim()) {
-      setInMeeting(true);
-      setIsMeetDialogOpen(false);
+      setSetupComplete(false); // Ensure the pre-call setup shows up after room name input
     }
   };
 
   const handleSetupComplete = (options) => {
     setSetupOptions(options);
     setSetupComplete(true);
+    setInMeeting(true); // Start the meeting
+    setIsMeetDialogOpen(false); // Close the dialog after setup
   };
 
   const handleEntryChange = (e) => {
@@ -153,10 +140,9 @@ export default function Home() {
           body: JSON.stringify(newEntry),
         });
         const data = await response.json();
-        console.log('Data added successfully:', data);
 
         const updatedData = { ...appData };
-        if (!updatedData[newEntry.user]) updatedData[newEntry.user] = { jokes: {}, thoughts: {} };
+        if (!updatedData[newEntry.user]) updatedData[newEntry.user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {} };
         updatedData[newEntry.user][newEntry.type][data.id] = newEntry.texted;
         setAppData(updatedData);
         setNewEntry({ type: '', user: '', texted: '' });
@@ -172,33 +158,61 @@ export default function Home() {
   const handleJokeClick = (id) => {
     setHighlightedJoke(id);
     setHighlightedThought(null);
+    setHighlightedFitness(null);
+    setHighlightedFinance(null);
   };
 
   const handleThoughtClick = (id) => {
     setHighlightedThought(id);
     setHighlightedJoke(null);
+    setHighlightedFitness(null);
+    setHighlightedFinance(null);
+  };
+
+  const handleFitnessClick = (id) => {
+    setHighlightedFitness(id);
+    setHighlightedJoke(null);
+    setHighlightedThought(null);
+    setHighlightedFinance(null);
+  };
+
+  const handleFinanceClick = (id) => {
+    setHighlightedFinance(id);
+    setHighlightedJoke(null);
+    setHighlightedThought(null);
+    setHighlightedFitness(null);
+  };
+
+  const handleHomeClick = () => {
+    window.location.reload(); // Refresh the page to reset the state
   };
 
   return (
     <div className="app-container">
       <span className="app-title">📚✒️ Idea Logs 🌍
         {!inMeeting && (
-          <button className="meet-button" onClick={handleMeetDialogOpen}>
+          <button className="header-button" onClick={handleMeetDialogOpen}>
             Meet
+          </button>
+        )}
+        {inMeeting && (
+          <button className="header-button" onClick={handleHomeClick}>
+            Home
           </button>
         )}
       </span>
 
       {inMeeting ? (
         <div className="meeting-container">
-          {!setupComplete ? (
-            <PreCallSetup onSetupComplete={handleSetupComplete} />
-          ) : (
+          {setupComplete ? (
             <VideoCall roomName={roomName} user={{ name: 'User Name' }} />
+          ) : (
+            <PreCallSetup onSetupComplete={handleSetupComplete} />
           )}
         </div>
       ) : (
         <div className="content-container">
+          {/* Sections for Jokes, Thoughts, Fitness, Finance */}
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Jokes</span>
@@ -207,6 +221,12 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
+              <span
+                className={`filter-item ${selectedJokesUser === 'all' ? 'selected' : ''}`}
+                onClick={() => setSelectedJokesUser('all')}
+              >
+                All ({Object.keys(getItems('jokes', selectedJokesUser)).length})
+              </span>
               {sortedJokesUsers.map((user) => (
                 <span
                   key={user}
@@ -216,20 +236,15 @@ export default function Home() {
                   {user.charAt(0).toUpperCase() + user.slice(1)} ({jokesCount[user]})
                 </span>
               ))}
-              <span
-                className={`filter-item ${selectedJokesUser === 'all' ? 'selected' : ''}`}
-                onClick={() => setSelectedJokesUser('all')}
-              >
-                All ({Object.keys(getJokes()).length})
-              </span>
             </div>
             <DisplaySection
-              items={getJokes()}
+              items={getItems('jokes', selectedJokesUser)}
               highlightedItem={highlightedJoke}
               onItemClick={handleJokeClick}
               selectedUser={selectedJokesUser}
             />
           </div>
+
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Thoughts</span>
@@ -238,6 +253,12 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
+              <span
+                className={`filter-item ${selectedThoughtsUser === 'all' ? 'selected' : ''}`}
+                onClick={() => setSelectedThoughtsUser('all')}
+              >
+                All ({Object.keys(getItems('thoughts', selectedThoughtsUser)).length})
+              </span>
               {sortedThoughtsUsers.map((user) => (
                 <span
                   key={user}
@@ -247,18 +268,76 @@ export default function Home() {
                   {user.charAt(0).toUpperCase() + user.slice(1)} ({thoughtsCount[user]})
                 </span>
               ))}
-              <span
-                className={`filter-item ${selectedThoughtsUser === 'all' ? 'selected' : ''}`}
-                onClick={() => setSelectedThoughtsUser('all')}
-              >
-                All ({Object.keys(getThoughts()).length})
-              </span>
             </div>
             <DisplaySection
-              items={getThoughts()}
+              items={getItems('thoughts', selectedThoughtsUser)}
               highlightedItem={highlightedThought}
               onItemClick={handleThoughtClick}
               selectedUser={selectedThoughtsUser}
+            />
+          </div>
+
+          <div className="section-container">
+            <div className="header-with-button">
+              <span className="section-header">Fitness</span>
+              <button className="add-button" onClick={handleDialogOpen}>
+                Add
+              </button>
+            </div>
+            <div className="user-filter">
+              <span
+                className={`filter-item ${selectedFitnessUser === 'all' ? 'selected' : ''}`}
+                onClick={() => setSelectedFitnessUser('all')}
+              >
+                All ({Object.keys(getItems('fitness', selectedFitnessUser)).length})
+              </span>
+              {sortedFitnessUsers.map((user) => (
+                <span
+                  key={user}
+                  className={`filter-item ${selectedFitnessUser === user ? 'selected' : ''} ${user}`}
+                  onClick={() => setSelectedFitnessUser(user)}
+                >
+                  {user.charAt(0).toUpperCase() + user.slice(1)} ({fitnessCount[user]})
+                </span>
+              ))}
+            </div>
+            <DisplaySection
+              items={getItems('fitness', selectedFitnessUser)}
+              highlightedItem={highlightedFitness}
+              onItemClick={handleFitnessClick}
+              selectedUser={selectedFitnessUser}
+            />
+          </div>
+
+          <div className="section-container">
+            <div className="header-with-button">
+              <span className="section-header">Finance</span>
+              <button className="add-button" onClick={handleDialogOpen}>
+                Add
+              </button>
+            </div>
+            <div className="user-filter">
+              <span
+                className={`filter-item ${selectedFinanceUser === 'all' ? 'selected' : ''}`}
+                onClick={() => setSelectedFinanceUser('all')}
+              >
+                All ({Object.keys(getItems('finance', selectedFinanceUser)).length})
+              </span>
+              {sortedFinanceUsers.map((user) => (
+                <span
+                  key={user}
+                  className={`filter-item ${selectedFinanceUser === user ? 'selected' : ''} ${user}`}
+                  onClick={() => setSelectedFinanceUser(user)}
+                >
+                  {user.charAt(0).toUpperCase() + user.slice(1)} ({financeCount[user]})
+                </span>
+              ))}
+            </div>
+            <DisplaySection
+              items={getItems('finance', selectedFinanceUser)}
+              highlightedItem={highlightedFinance}
+              onItemClick={handleFinanceClick}
+              selectedUser={selectedFinanceUser}
             />
           </div>
         </div>
@@ -271,7 +350,7 @@ export default function Home() {
             <input
               type="text"
               name="texted"
-              placeholder="Enter joke or thought..."
+              placeholder="Enter joke, thought, fitness tip, or finance advice..."
               value={newEntry.texted}
               onChange={handleEntryChange}
             />
@@ -279,6 +358,8 @@ export default function Home() {
               <option value="">Select type</option>
               <option value="jokes">Joke</option>
               <option value="thoughts">Thought</option>
+              <option value="fitness">Fitness</option>
+              <option value="finance">Finance</option>
             </select>
             <select name="user" value={newEntry.user} onChange={handleEntryChange}>
               <option value="">Select user</option>
@@ -296,21 +377,27 @@ export default function Home() {
         </div>
       )}
 
-      {isMeetDialogOpen && (
+      {isMeetDialogOpen && !setupComplete && (
         <div className="dialog-overlay">
           <div className="dialog">
-            <span className="dialog-title">Join a Meeting</span>
-            <input
-              type="text"
-              name="roomName"
-              placeholder="Enter Room Name"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-            />
-            <div className="dialog-buttons">
-              <button onClick={handleJoinCall}>Join</button>
-              <button onClick={handleMeetDialogClose}>Cancel</button>
-            </div>
+            {!setupComplete && roomName === '' ? (
+              <>
+                <span className="dialog-title">Join a Meeting</span>
+                <input
+                  type="text"
+                  name="roomName"
+                  placeholder="Enter Room Name"
+                  value={roomName}
+                  onChange={(e) => setRoomName(e.target.value)}
+                />
+                <div className="dialog-buttons">
+                  <button onClick={handleJoinCall}>Join</button>
+                  <button onClick={handleMeetDialogClose}>Cancel</button>
+                </div>
+              </>
+            ) : (
+              <PreCallSetup onSetupComplete={handleSetupComplete} />
+            )}
           </div>
         </div>
       )}

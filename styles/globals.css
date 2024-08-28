@@ -119,6 +119,9 @@
 }
 
 .dialog {
+  position: relative; /* Ensure the top property works */
+  top: -15%;
+  height: fit-content;
   background-color: white;
   padding: 20px;
   border-radius: var(--border-radius);
@@ -133,7 +136,7 @@
 
 .dialog input,
 .dialog select {
-  width: 100%;
+  width: -webkit-fill-available;
   padding: 8px;
   margin: 10px 0;
   border: 1px solid #ccc;
@@ -228,7 +231,7 @@
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 }
 
-.meet-button {
+.header-button {
   margin-left: 20px;
   background-color: #28a745cc;
   color: white;
@@ -239,7 +242,7 @@
   transition: background-color 0.3s ease;
 }
 
-.meet-button:hover {
+.header-button:hover {
   background-color: #218838;
 }
 
