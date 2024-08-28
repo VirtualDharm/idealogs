@@ -1,6 +1,7 @@
-/** @type {import('next').NextConfig} */
+import withTM from 'next-transpile-modules';
+
 const nextConfig = {
   reactStrictMode: true,
 };
 
-export default nextConfig;
+export default withTM(['@jitsi/react-sdk'])(nextConfig);

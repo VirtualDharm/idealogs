@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DisplaySection from '../components/DisplaySection';
+import PreCallSetup from '../components/PreCallSetup';
+import VideoCall from '../components/VideoCall';
 
 export default function Home() {
   const [appData, setAppData] = useState({});
@@ -9,6 +11,11 @@ export default function Home() {
   const [highlightedThought, setHighlightedThought] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '' });
+  const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
+  const [roomName, setRoomName] = useState('');
+  const [inMeeting, setInMeeting] = useState(false);
+  const [setupComplete, setSetupComplete] = useState(false);
+  const [setupOptions, setSetupOptions] = useState({});
 
   useEffect(() => {
     async function fetchData(type) {
@@ -109,6 +116,28 @@ export default function Home() {
     setNewEntry({ type: '', user: '', texted: '' });
   };
 
+  const handleMeetDialogOpen = () => {
+    setIsMeetDialogOpen(true);
+  };
+
+  const handleMeetDialogClose = () => {
+    setIsMeetDialogOpen(false);
+    setRoomName('');
+  };
+
+  const handleJoinCall = () => {
+    console.log(`1`)
+    if (roomName.trim()) {
+      setInMeeting(true);
+      setIsMeetDialogOpen(false);
+    }
+  };
+
+  const handleSetupComplete = (options) => {
+    setSetupOptions(options);
+    setSetupComplete(true);
+  };
+
   const handleEntryChange = (e) => {
     setNewEntry({ ...newEntry, [e.target.name]: e.target.value });
   };
@@ -152,71 +181,88 @@ export default function Home() {
 
   return (
     <div className="app-container">
-      <span className="app-title">📚✒️ Idea Logs 🌍</span>
-      <div className="content-container">
-        <div className="section-container">
-          <div className="header-with-button">
-            <span className="section-header">Jokes</span>
-            <button className="add-button" onClick={handleDialogOpen}>
-              Add
-            </button>
-          </div>
-          <div className="user-filter">
-            {sortedJokesUsers.map((user) => (
-              <span
-                key={user}
-                className={`filter-item ${selectedJokesUser === user ? 'selected' : ''} ${user}`}
-                onClick={() => setSelectedJokesUser(user)}
-              >
-                {user.charAt(0).toUpperCase() + user.slice(1)} ({jokesCount[user]})
-              </span>
-            ))}
-            <span
-              className={`filter-item ${selectedJokesUser === 'all' ? 'selected' : ''}`}
-              onClick={() => setSelectedJokesUser('all')}
-            >
-              All ({Object.keys(getJokes()).length})
-            </span>
-          </div>
-          <DisplaySection
-            items={getJokes()}
-            highlightedItem={highlightedJoke}
-            onItemClick={handleJokeClick}
-            selectedUser={selectedJokesUser}
-          />
+      <span className="app-title">📚✒️ Idea Logs 🌍
+        {!inMeeting && (
+          <button className="meet-button" onClick={handleMeetDialogOpen}>
+            Meet
+          </button>
+        )}
+      </span>
+
+      {inMeeting ? (
+        <div className="meeting-container">
+          {!setupComplete ? (
+            <PreCallSetup onSetupComplete={handleSetupComplete} />
+          ) : (
+            <VideoCall roomName={roomName} user={{ name: 'User Name' }} />
+          )}
         </div>
-        <div className="section-container">
-          <div className="header-with-button">
-            <span className="section-header">Thoughts</span>
-            <button className="add-button" onClick={handleDialogOpen}>
-              Add
-            </button>
-          </div>
-          <div className="user-filter">
-            {sortedThoughtsUsers.map((user) => (
+      ) : (
+        <div className="content-container">
+          <div className="section-container">
+            <div className="header-with-button">
+              <span className="section-header">Jokes</span>
+              <button className="add-button" onClick={handleDialogOpen}>
+                Add
+              </button>
+            </div>
+            <div className="user-filter">
+              {sortedJokesUsers.map((user) => (
+                <span
+                  key={user}
+                  className={`filter-item ${selectedJokesUser === user ? 'selected' : ''} ${user}`}
+                  onClick={() => setSelectedJokesUser(user)}
+                >
+                  {user.charAt(0).toUpperCase() + user.slice(1)} ({jokesCount[user]})
+                </span>
+              ))}
               <span
-                key={user}
-                className={`filter-item ${selectedThoughtsUser === user ? 'selected' : ''} ${user}`}
-                onClick={() => setSelectedThoughtsUser(user)}
+                className={`filter-item ${selectedJokesUser === 'all' ? 'selected' : ''}`}
+                onClick={() => setSelectedJokesUser('all')}
               >
-                {user.charAt(0).toUpperCase() + user.slice(1)} ({thoughtsCount[user]})
+                All ({Object.keys(getJokes()).length})
               </span>
-            ))}
-            <span
-              className={`filter-item ${selectedThoughtsUser === 'all' ? 'selected' : ''}`}
-              onClick={() => setSelectedThoughtsUser('all')}
-            >
-              All ({Object.keys(getThoughts()).length})
-            </span>
+            </div>
+            <DisplaySection
+              items={getJokes()}
+              highlightedItem={highlightedJoke}
+              onItemClick={handleJokeClick}
+              selectedUser={selectedJokesUser}
+            />
           </div>
-          <DisplaySection
-            items={getThoughts()}
-            highlightedItem={highlightedThought}
-            onItemClick={handleThoughtClick}
-            selectedUser={selectedThoughtsUser}
-          />
+          <div className="section-container">
+            <div className="header-with-button">
+              <span className="section-header">Thoughts</span>
+              <button className="add-button" onClick={handleDialogOpen}>
+                Add
+              </button>
+            </div>
+            <div className="user-filter">
+              {sortedThoughtsUsers.map((user) => (
+                <span
+                  key={user}
+                  className={`filter-item ${selectedThoughtsUser === user ? 'selected' : ''} ${user}`}
+                  onClick={() => setSelectedThoughtsUser(user)}
+                >
+                  {user.charAt(0).toUpperCase() + user.slice(1)} ({thoughtsCount[user]})
+                </span>
+              ))}
+              <span
+                className={`filter-item ${selectedThoughtsUser === 'all' ? 'selected' : ''}`}
+                onClick={() => setSelectedThoughtsUser('all')}
+              >
+                All ({Object.keys(getThoughts()).length})
+              </span>
+            </div>
+            <DisplaySection
+              items={getThoughts()}
+              highlightedItem={highlightedThought}
+              onItemClick={handleThoughtClick}
+              selectedUser={selectedThoughtsUser}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {isDialogOpen && (
         <div className="dialog-overlay">
@@ -245,6 +291,25 @@ export default function Home() {
             <div className="dialog-buttons">
               <button onClick={handleAddEntry}>Add</button>
               <button onClick={handleDialogClose}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isMeetDialogOpen && (
+        <div className="dialog-overlay">
+          <div className="dialog">
+            <span className="dialog-title">Join a Meeting</span>
+            <input
+              type="text"
+              name="roomName"
+              placeholder="Enter Room Name"
+              value={roomName}
+              onChange={(e) => setRoomName(e.target.value)}
+            />
+            <div className="dialog-buttons">
+              <button onClick={handleJoinCall}>Join</button>
+              <button onClick={handleMeetDialogClose}>Cancel</button>
             </div>
           </div>
         </div>
