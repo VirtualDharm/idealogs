@@ -12,7 +12,7 @@ export default function Home() {
   const [selectedMiscUser, setSelectedMiscUser] = useState('all');
   const [highlightedItem, setHighlightedItem] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '' });
+  const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '', otherUser: '' });
   const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
   const [roomName, setRoomName] = useState('');
   const [inMeeting, setInMeeting] = useState(false);
@@ -53,18 +53,20 @@ export default function Home() {
     if (selectedUser === 'all') {
       const combinedItems = {};
       Object.keys(appData).forEach((user) => {
+        if (appData[user][category]) {  // Check if the category exists
           Object.entries(appData[user][category])
             .sort((a, b) => b[0] - a[0])
             .forEach(([key, item]) => {
               combinedItems[`${user}_${key}`] = { texted: item, user };
             });
+        }
       });
       return combinedItems;
     }
     if (selectedUser === 'others') {
       const otherItems = {};
       Object.keys(appData).forEach((user) => {
-        if (user.startsWith('other_')) {
+        if (user.startsWith('other_') && appData[user][category]) {  // Check if the category exists
           Object.entries(appData[user][category])
             .sort((a, b) => b[0] - a[0])
             .forEach(([key, item]) => {
@@ -74,7 +76,7 @@ export default function Home() {
       });
       return otherItems;
     }
-    return Object.entries(appData[selectedUser][category])
+    return Object.entries(appData[selectedUser]?.[category] || {})  // Safe access with optional chaining
       .sort((a, b) => b[0] - a[0])
       .reduce(
         (acc, [key, item]) => ({
@@ -113,7 +115,7 @@ export default function Home() {
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
-    setNewEntry({ type: '', user: '', texted: '' });
+    setNewEntry({ type: '', user: '', texted: '', otherUser: '' });
   };
 
   const handleMeetDialogOpen = () => {
@@ -139,26 +141,43 @@ export default function Home() {
   };
 
   const handleEntryChange = (e) => {
-    setNewEntry({ ...newEntry, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'user' && value !== 'other') {
+      setNewEntry({ ...newEntry, user: value, otherUser: '' });
+    } else if (name === 'user' && value === 'other') {
+      setNewEntry({ ...newEntry, user: 'other', otherUser: '' });
+    } else if (name === 'otherUser') {
+      setNewEntry({ ...newEntry, otherUser: value });
+    } else {
+      setNewEntry({ ...newEntry, [name]: value });
+    }
   };
 
   const handleAddEntry = async () => {
-    if (newEntry.texted && newEntry.type && newEntry.user) {
+    let userToSave = newEntry.user;
+
+    // If "Other" is selected, append the entered name
+    if (newEntry.user === 'other') {
+      userToSave = `other_${newEntry.otherUser.toLowerCase()}`;
+    }
+
+    if (newEntry.texted && newEntry.type && userToSave) {
       try {
         const response = await fetch('/api/addData', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(newEntry),
+          body: JSON.stringify({ ...newEntry, user: userToSave }),
         });
         const data = await response.json();
 
         const updatedData = { ...appData };
-        if (!updatedData[newEntry.user]) updatedData[newEntry.user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
-        updatedData[newEntry.user][newEntry.type][data.id] = newEntry.texted;
+        if (!updatedData[userToSave]) {
+          updatedData[userToSave] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
+        }
+        updatedData[userToSave][newEntry.type][data.id] = newEntry.texted;
         setAppData(updatedData);
-        setNewEntry({ type: '', user: '', texted: '' });
         handleDialogClose();
       } catch (error) {
         console.error('Error adding data:', error);
@@ -372,7 +391,7 @@ export default function Home() {
               <option value="finance">Finance</option>
               <option value="misc">Miscellaneous</option>
             </select>
-            <select name="user" value={newEntry.user} onChange={handleEntryChange}>
+            <select name="user" value={newEntry.user === `other_${newEntry.otherUser?.toLowerCase()}` ? 'other' : newEntry.user} onChange={handleEntryChange}>
               <option value="">Select user</option>
               <option value="ashok">Ashok</option>
               <option value="dharm">Dharm</option>
@@ -385,7 +404,7 @@ export default function Home() {
                 name="otherUser"
                 placeholder="Enter user name"
                 value={newEntry.otherUser || ''}
-                onChange={(e) => setNewEntry({ ...newEntry, user: `other_${e.target.value.toLowerCase()}` })}
+                onChange={handleEntryChange}
               />
             )}
             <div className="dialog-buttons">
