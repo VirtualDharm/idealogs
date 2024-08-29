@@ -20,40 +20,70 @@ export default function Home() {
   const [setupOptions, setSetupOptions] = useState({});
 
   useEffect(() => {
+    async function fetchCounts() {
+      const response = await fetch(`/api/getCounts`);
+      const data = await response.json();
+      return data;
+    }
+  
     async function fetchData(type) {
       const response = await fetch(`/api/getData?type=${type}`);
       const data = await response.json();
       return data;
     }
-
+  
     async function loadAppData() {
-      const jokes = await fetchData('jokes');
-      const thoughts = await fetchData('thoughts');
-      const fitness = await fetchData('fitness');
-      const finance = await fetchData('finance');
-      const misc = await fetchData('misc');
-
+      // Load cached data
+      const cachedData = JSON.parse(localStorage.getItem('appData') || '{}');
+      const cachedCounts = JSON.parse(localStorage.getItem('appCounts') || '{}');
+  
+      // Immediately update state with cached data
+      setAppData(cachedData);
+  
+      // Fetch current counts
+      const currentCounts = await fetchCounts();
+  
+      const categories = ['jokes', 'thoughts', 'fitness', 'finance', 'misc'];
       const combinedData = {};
-      const categories = { jokes, thoughts, fitness, finance, misc };
-
-      Object.keys(categories).forEach((category) => {
-        categories[category].forEach(({ user, id, texted }) => {
-          if (!combinedData[user]) combinedData[user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
-          combinedData[user][category][id] = texted;
+  
+      for (const category of categories) {
+        if (cachedCounts[category] === currentCounts[category] && cachedData[category]) {
+          // Use cached data if the counts haven't changed
+          combinedData[category] = cachedData[category];
+        } else {
+          // Fetch new data if counts have changed or no cache exists
+          const data = await fetchData(category);
+          combinedData[category] = data;
+        }
+      }
+  
+      // Store the fetched data and counts in local storage
+      localStorage.setItem('appData', JSON.stringify(combinedData));
+      localStorage.setItem('appCounts', JSON.stringify(currentCounts));
+  
+      // Combine data for different users
+      const userData = {};
+      Object.keys(combinedData).forEach((category) => {
+        combinedData[category].forEach(({ user, id, texted }) => {
+          if (!userData[user]) userData[user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
+          userData[user][category][id] = texted;
         });
       });
-
-      setAppData(combinedData);
+  
+      // Update state with the combined data
+      setAppData(userData);
     }
-
+  
     loadAppData();
   }, []);
 
   const getItems = (category, selectedUser) => {
+    if (!appData || Object.keys(appData).length === 0) return {}; // Handle case where data is not loaded yet
+  
     if (selectedUser === 'all') {
       const combinedItems = {};
       Object.keys(appData).forEach((user) => {
-        if (appData[user][category]) {  // Check if the category exists
+        if (appData[user][category]) {
           Object.entries(appData[user][category])
             .sort((a, b) => b[0] - a[0])
             .forEach(([key, item]) => {
@@ -89,7 +119,11 @@ export default function Home() {
 
   const getCounts = (type) => {
     return Object.keys(appData).reduce((counts, user) => {
-      counts[user] = Object.keys(appData[user][type]).length;
+      if (appData[user] && appData[user][type]) {
+        counts[user] = Object.keys(appData[user][type]).length;
+      } else {
+        counts[user] = 0; // Or any default value you prefer
+      }
       return counts;
     }, {});
   };
@@ -111,7 +145,6 @@ export default function Home() {
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
-    // Removed the line that was setting selectedJokesUser to 'jokes'
   };
 
   const handleDialogClose = () => {
