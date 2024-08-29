@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       throw error;
     }
 
-    res.status(200).json({ sucess: 'data inserted' });
+    res.status(200).json({ success: 'Data inserted' });
   } catch (err) {
     console.error('Error adding data:', err);
     res.status(500).json({ error: 'Failed to add data' });

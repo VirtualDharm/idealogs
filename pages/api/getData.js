@@ -14,6 +14,16 @@ export default async function handler(req, res) {
       
       if (error) throw error;
       data = entries;
+    } else if (user.startsWith('other')) {
+      const { data: entries, error } = await supabase
+        .from('entries')
+        .select('*')
+        .eq('type', type)
+        .ilike('user', `other_%`)
+        .order('id', { ascending: false });
+      
+      if (error) throw error;
+      data = entries;
     } else {
       const { data: entries, error } = await supabase
         .from('entries')

@@ -9,10 +9,8 @@ export default function Home() {
   const [selectedThoughtsUser, setSelectedThoughtsUser] = useState('all');
   const [selectedFitnessUser, setSelectedFitnessUser] = useState('all');
   const [selectedFinanceUser, setSelectedFinanceUser] = useState('all');
-  const [highlightedJoke, setHighlightedJoke] = useState(null);
-  const [highlightedThought, setHighlightedThought] = useState(null);
-  const [highlightedFitness, setHighlightedFitness] = useState(null);
-  const [highlightedFinance, setHighlightedFinance] = useState(null);
+  const [selectedMiscUser, setSelectedMiscUser] = useState('all');
+  const [highlightedItem, setHighlightedItem] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '' });
   const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
@@ -33,13 +31,14 @@ export default function Home() {
       const thoughts = await fetchData('thoughts');
       const fitness = await fetchData('fitness');
       const finance = await fetchData('finance');
+      const misc = await fetchData('misc');
 
       const combinedData = {};
-      const categories = { jokes, thoughts, fitness, finance };
+      const categories = { jokes, thoughts, fitness, finance, misc };
 
       Object.keys(categories).forEach((category) => {
         categories[category].forEach(({ user, id, texted }) => {
-          if (!combinedData[user]) combinedData[user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {} };
+          if (!combinedData[user]) combinedData[user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
           combinedData[user][category][id] = texted;
         });
       });
@@ -54,13 +53,26 @@ export default function Home() {
     if (selectedUser === 'all') {
       const combinedItems = {};
       Object.keys(appData).forEach((user) => {
-        Object.entries(appData[user][category])
-          .sort((a, b) => b[0] - a[0])
-          .forEach(([key, item]) => {
-            combinedItems[`${user}_${key}`] = { texted: item, user };
-          });
+          Object.entries(appData[user][category])
+            .sort((a, b) => b[0] - a[0])
+            .forEach(([key, item]) => {
+              combinedItems[`${user}_${key}`] = { texted: item, user };
+            });
       });
       return combinedItems;
+    }
+    if (selectedUser === 'others') {
+      const otherItems = {};
+      Object.keys(appData).forEach((user) => {
+        if (user.startsWith('other_')) {
+          Object.entries(appData[user][category])
+            .sort((a, b) => b[0] - a[0])
+            .forEach(([key, item]) => {
+              otherItems[`${user}_${key}`] = { texted: item, user: user.split('_')[1] };
+            });
+        }
+      });
+      return otherItems;
     }
     return Object.entries(appData[selectedUser][category])
       .sort((a, b) => b[0] - a[0])
@@ -80,19 +92,20 @@ export default function Home() {
     }, {});
   };
 
-  const jokesCount = getCounts('jokes');
-  const thoughtsCount = getCounts('thoughts');
-  const fitnessCount = getCounts('fitness');
-  const financeCount = getCounts('finance');
+  const categorizedUsers = (category) => {
+    const counts = getCounts(category);
+    const sortedUsers = Object.keys(counts)
+      .filter((user) => !user.startsWith('other_'))
+      .sort((a, b) => counts[b] - counts[a]);
 
-  const sortUsersByCount = (counts) => {
-    return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const othersExist = Object.keys(counts).some((user) => user.startsWith('other_'));
+
+    return [
+      { user: 'all', label: 'All' },
+      ...sortedUsers.map((user) => ({ user, label: user.charAt(0).toUpperCase() + user.slice(1) })),
+      ...(othersExist ? [{ user: 'others', label: 'Others' }] : []),
+    ];
   };
-
-  const sortedJokesUsers = sortUsersByCount(jokesCount);
-  const sortedThoughtsUsers = sortUsersByCount(thoughtsCount);
-  const sortedFitnessUsers = sortUsersByCount(fitnessCount);
-  const sortedFinanceUsers = sortUsersByCount(financeCount);
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -114,15 +127,15 @@ export default function Home() {
 
   const handleJoinCall = () => {
     if (roomName.trim()) {
-      setSetupComplete(false); // Ensure the pre-call setup shows up after room name input
+      setSetupComplete(false);
     }
   };
 
   const handleSetupComplete = (options) => {
     setSetupOptions(options);
     setSetupComplete(true);
-    setInMeeting(true); // Start the meeting
-    setIsMeetDialogOpen(false); // Close the dialog after setup
+    setInMeeting(true);
+    setIsMeetDialogOpen(false);
   };
 
   const handleEntryChange = (e) => {
@@ -142,7 +155,7 @@ export default function Home() {
         const data = await response.json();
 
         const updatedData = { ...appData };
-        if (!updatedData[newEntry.user]) updatedData[newEntry.user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {} };
+        if (!updatedData[newEntry.user]) updatedData[newEntry.user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
         updatedData[newEntry.user][newEntry.type][data.id] = newEntry.texted;
         setAppData(updatedData);
         setNewEntry({ type: '', user: '', texted: '' });
@@ -155,36 +168,12 @@ export default function Home() {
     }
   };
 
-  const handleJokeClick = (id) => {
-    setHighlightedJoke(id);
-    setHighlightedThought(null);
-    setHighlightedFitness(null);
-    setHighlightedFinance(null);
-  };
-
-  const handleThoughtClick = (id) => {
-    setHighlightedThought(id);
-    setHighlightedJoke(null);
-    setHighlightedFitness(null);
-    setHighlightedFinance(null);
-  };
-
-  const handleFitnessClick = (id) => {
-    setHighlightedFitness(id);
-    setHighlightedJoke(null);
-    setHighlightedThought(null);
-    setHighlightedFinance(null);
-  };
-
-  const handleFinanceClick = (id) => {
-    setHighlightedFinance(id);
-    setHighlightedJoke(null);
-    setHighlightedThought(null);
-    setHighlightedFitness(null);
+  const handleItemClick = (id) => {
+    setHighlightedItem(id);
   };
 
   const handleHomeClick = () => {
-    window.location.reload(); // Refresh the page to reset the state
+    window.location.reload();
   };
 
   return (
@@ -212,132 +201,153 @@ export default function Home() {
         </div>
       ) : (
         <div className="content-container">
-          {/* Sections for Jokes, Thoughts, Fitness, Finance */}
+          {/* Jokes Section */}
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Jokes</span>
-              <button className="add-button" onClick={handleDialogOpen}>
+              <button className="add-button" onClick={() => {
+                setSelectedJokesUser('jokes');
+                handleDialogOpen();
+              }}>
                 Add
               </button>
             </div>
             <div className="user-filter">
-              <span
-                className={`filter-item ${selectedJokesUser === 'all' ? 'selected' : ''}`}
-                onClick={() => setSelectedJokesUser('all')}
-              >
-                All ({Object.keys(getItems('jokes', selectedJokesUser)).length})
-              </span>
-              {sortedJokesUsers.map((user) => (
+              {categorizedUsers('jokes').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${selectedJokesUser === user ? 'selected' : ''} ${user}`}
+                  className={`filter-item ${user}  ${selectedJokesUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedJokesUser(user)}
                 >
-                  {user.charAt(0).toUpperCase() + user.slice(1)} ({jokesCount[user]})
+                  {label} ({Object.keys(getItems('jokes', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
               items={getItems('jokes', selectedJokesUser)}
-              highlightedItem={highlightedJoke}
-              onItemClick={handleJokeClick}
+              highlightedItem={highlightedItem}
+              onItemClick={handleItemClick}
               selectedUser={selectedJokesUser}
             />
           </div>
 
+          {/* Thoughts Section */}
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Thoughts</span>
-              <button className="add-button" onClick={handleDialogOpen}>
+              <button className="add-button" onClick={() => {
+                setSelectedThoughtsUser('thoughts');
+                handleDialogOpen();
+              }}>
                 Add
               </button>
             </div>
             <div className="user-filter">
-              <span
-                className={`filter-item ${selectedThoughtsUser === 'all' ? 'selected' : ''}`}
-                onClick={() => setSelectedThoughtsUser('all')}
-              >
-                All ({Object.keys(getItems('thoughts', selectedThoughtsUser)).length})
-              </span>
-              {sortedThoughtsUsers.map((user) => (
+              {categorizedUsers('thoughts').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${selectedThoughtsUser === user ? 'selected' : ''} ${user}`}
+                  className={`filter-item ${user}  ${selectedThoughtsUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedThoughtsUser(user)}
                 >
-                  {user.charAt(0).toUpperCase() + user.slice(1)} ({thoughtsCount[user]})
+                  {label} ({Object.keys(getItems('thoughts', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
               items={getItems('thoughts', selectedThoughtsUser)}
-              highlightedItem={highlightedThought}
-              onItemClick={handleThoughtClick}
+              highlightedItem={highlightedItem}
+              onItemClick={handleItemClick}
               selectedUser={selectedThoughtsUser}
             />
           </div>
 
+          {/* Fitness Section */}
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Fitness</span>
-              <button className="add-button" onClick={handleDialogOpen}>
+              <button className="add-button" onClick={() => {
+                setSelectedFitnessUser('fitness');
+                handleDialogOpen();
+              }}>
                 Add
               </button>
             </div>
             <div className="user-filter">
-              <span
-                className={`filter-item ${selectedFitnessUser === 'all' ? 'selected' : ''}`}
-                onClick={() => setSelectedFitnessUser('all')}
-              >
-                All ({Object.keys(getItems('fitness', selectedFitnessUser)).length})
-              </span>
-              {sortedFitnessUsers.map((user) => (
+              {categorizedUsers('fitness').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${selectedFitnessUser === user ? 'selected' : ''} ${user}`}
+                  className={`filter-item ${user}  ${selectedFitnessUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedFitnessUser(user)}
                 >
-                  {user.charAt(0).toUpperCase() + user.slice(1)} ({fitnessCount[user]})
+                  {label} ({Object.keys(getItems('fitness', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
               items={getItems('fitness', selectedFitnessUser)}
-              highlightedItem={highlightedFitness}
-              onItemClick={handleFitnessClick}
+              highlightedItem={highlightedItem}
+              onItemClick={handleItemClick}
               selectedUser={selectedFitnessUser}
             />
           </div>
 
+          {/* Finance Section */}
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Finance</span>
-              <button className="add-button" onClick={handleDialogOpen}>
+              <button className="add-button" onClick={() => {
+                setSelectedFinanceUser('finance');
+                handleDialogOpen();
+              }}>
                 Add
               </button>
             </div>
             <div className="user-filter">
-              <span
-                className={`filter-item ${selectedFinanceUser === 'all' ? 'selected' : ''}`}
-                onClick={() => setSelectedFinanceUser('all')}
-              >
-                All ({Object.keys(getItems('finance', selectedFinanceUser)).length})
-              </span>
-              {sortedFinanceUsers.map((user) => (
+              {categorizedUsers('finance').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${selectedFinanceUser === user ? 'selected' : ''} ${user}`}
+                  className={`filter-item ${user}  ${selectedFinanceUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedFinanceUser(user)}
                 >
-                  {user.charAt(0).toUpperCase() + user.slice(1)} ({financeCount[user]})
+                  {label} ({Object.keys(getItems('finance', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
               items={getItems('finance', selectedFinanceUser)}
-              highlightedItem={highlightedFinance}
-              onItemClick={handleFinanceClick}
+              highlightedItem={highlightedItem}
+              onItemClick={handleItemClick}
               selectedUser={selectedFinanceUser}
+            />
+          </div>
+
+          {/* Miscellaneous Section */}
+          <div className="section-container">
+            <div className="header-with-button">
+              <span className="section-header">Miscellaneous</span>
+              <button className="add-button" onClick={() => {
+                setSelectedMiscUser('misc');
+                handleDialogOpen();
+              }}>
+                Add
+              </button>
+            </div>
+            <div className="user-filter">
+              {categorizedUsers('misc').map(({ user, label }) => (
+                <span
+                  key={user}
+                  className={`filter-item ${user}  ${selectedMiscUser === user ? 'selected' : ''}`}
+                  onClick={() => setSelectedMiscUser(user)}
+                >
+                  {label} ({Object.keys(getItems('misc', user)).length})
+                </span>
+              ))}
+            </div>
+            <DisplaySection
+              items={getItems('misc', selectedMiscUser)}
+              highlightedItem={highlightedItem}
+              onItemClick={handleItemClick}
+              selectedUser={selectedMiscUser}
             />
           </div>
         </div>
@@ -350,25 +360,34 @@ export default function Home() {
             <input
               type="text"
               name="texted"
-              placeholder="Enter joke, thought, fitness tip, or finance advice..."
+              placeholder="Enter your text..."
               value={newEntry.texted}
               onChange={handleEntryChange}
             />
             <select name="type" value={newEntry.type} onChange={handleEntryChange}>
-              <option value="">Select type</option>
+              <option value="">Select category</option>
               <option value="jokes">Joke</option>
               <option value="thoughts">Thought</option>
               <option value="fitness">Fitness</option>
               <option value="finance">Finance</option>
+              <option value="misc">Miscellaneous</option>
             </select>
             <select name="user" value={newEntry.user} onChange={handleEntryChange}>
               <option value="">Select user</option>
-              {Object.keys(appData).map((user) => (
-                <option key={user} value={user}>
-                  {user.charAt(0).toUpperCase() + user.slice(1)}
-                </option>
-              ))}
+              <option value="ashok">Ashok</option>
+              <option value="dharm">Dharm</option>
+              <option value="swapnil">Swapnil</option>
+              <option value="other">Other</option>
             </select>
+            {newEntry.user === 'other' && (
+              <input
+                type="text"
+                name="otherUser"
+                placeholder="Enter user name"
+                value={newEntry.otherUser || ''}
+                onChange={(e) => setNewEntry({ ...newEntry, user: `other_${e.target.value.toLowerCase()}` })}
+              />
+            )}
             <div className="dialog-buttons">
               <button onClick={handleAddEntry}>Add</button>
               <button onClick={handleDialogClose}>Cancel</button>
