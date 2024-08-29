@@ -111,6 +111,7 @@ export default function Home() {
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
+    // Removed the line that was setting selectedJokesUser to 'jokes'
   };
 
   const handleDialogClose = () => {
@@ -224,10 +225,7 @@ export default function Home() {
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Jokes</span>
-              <button className="add-button" onClick={() => {
-                setSelectedJokesUser('jokes');
-                handleDialogOpen();
-              }}>
+              <button className="add-button" onClick={handleDialogOpen}>
                 Add
               </button>
             </div>
@@ -254,10 +252,7 @@ export default function Home() {
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Thoughts</span>
-              <button className="add-button" onClick={() => {
-                setSelectedThoughtsUser('thoughts');
-                handleDialogOpen();
-              }}>
+              <button className="add-button" onClick={handleDialogOpen}>
                 Add
               </button>
             </div>
@@ -284,10 +279,7 @@ export default function Home() {
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Fitness</span>
-              <button className="add-button" onClick={() => {
-                setSelectedFitnessUser('fitness');
-                handleDialogOpen();
-              }}>
+              <button className="add-button" onClick={handleDialogOpen}>
                 Add
               </button>
             </div>
@@ -314,10 +306,7 @@ export default function Home() {
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Finance</span>
-              <button className="add-button" onClick={() => {
-                setSelectedFinanceUser('finance');
-                handleDialogOpen();
-              }}>
+              <button className="add-button" onClick={handleDialogOpen}>
                 Add
               </button>
             </div>
@@ -344,10 +333,7 @@ export default function Home() {
           <div className="section-container">
             <div className="header-with-button">
               <span className="section-header">Miscellaneous</span>
-              <button className="add-button" onClick={() => {
-                setSelectedMiscUser('misc');
-                handleDialogOpen();
-              }}>
+              <button className="add-button" onClick={handleDialogOpen}>
                 Add
               </button>
             </div>
