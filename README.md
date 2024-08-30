@@ -1,8 +1,8 @@
 to start & run project loacally : 
 
-git clone 
-npm i
-npm run dev
+git clone      
+npm i               
+npm run dev                
 
 
 web view:
