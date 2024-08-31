@@ -44,18 +44,17 @@ export default function Home() {
       const currentCounts = await fetchCounts();
   
       const categories = ['jokes', 'thoughts', 'fitness', 'finance', 'misc'];
-      const combinedData = {};
+      const combinedData = { ...cachedData };
   
-      for (const category of categories) {
-        if (cachedCounts[category] === currentCounts[category] && cachedData[category]) {
-          // Use cached data if the counts haven't changed
-          combinedData[category] = cachedData[category];
-        } else {
-          // Fetch new data if counts have changed or no cache exists
+      const dataFetchPromises = categories.map(async (category) => {
+        if (cachedCounts[category] !== currentCounts[category] || !cachedData[category]) {
           const data = await fetchData(category);
           combinedData[category] = data;
+        } else {
+          console.log(`Using cached data for category: ${category}`);
         }
-      }
+      });
+      await Promise.all(dataFetchPromises);
   
       // Store the fetched data and counts in local storage
       localStorage.setItem('appData', JSON.stringify(combinedData));
