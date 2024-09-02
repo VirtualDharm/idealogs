@@ -14,6 +14,7 @@ export default function Home() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '', otherUser: '' });
   const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const [roomName, setRoomName] = useState('');
   const [inMeeting, setInMeeting] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
@@ -162,6 +163,7 @@ export default function Home() {
 
   const handleJoinCall = () => {
     if (roomName.trim()) {
+      setIsJoining(true);
       setSetupComplete(false);
     }
   };
@@ -436,7 +438,7 @@ export default function Home() {
       {isMeetDialogOpen && !setupComplete && (
         <div className="dialog-overlay">
           <div className="dialog">
-            {!setupComplete && roomName === '' ? (
+            {!setupComplete && !isJoining ? (
               <>
                 <span className="dialog-title">Join a Meeting</span>
                 <input
