@@ -214,7 +214,7 @@ export default function Home() {
       {inMeeting ? (
         <div className="meeting-container">
           {setupComplete ? (
-            <VideoCall roomName={roomName} user={{ name: 'User Name' }} />
+            <VideoCall roomName={roomName} user={currentUser ? currentUser : 'User Name'} />
           ) : (
             <PreCallSetup onSetupComplete={handleSetupComplete} />
           )}
