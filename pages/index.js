@@ -1,7 +1,12 @@
+import dynamic from 'next/dynamic';
 import React, { useState, useEffect } from 'react';
 import DisplaySection from '../components/DisplaySection';
 import PreCallSetup from '../components/PreCallSetup';
 import VideoCall from '../components/VideoCall';
+
+const GlobeComponent = dynamic(() => import('../components/GlobeComponent'), {
+  ssr: false,
+});
 
 export default function Home() {
   const [appData, setAppData] = useState({});
@@ -22,7 +27,8 @@ export default function Home() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [authDetails, setAuthDetails] = useState({ name: '', phone: '', password: '', confirmPassword: '' });
-  const [currentUser, setCurrentUser] = useState(null); // State to store current user
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     async function fetchCounts() {
@@ -38,16 +44,11 @@ export default function Home() {
     }
 
     async function loadAppData() {
-      // Load cached data
       const cachedData = JSON.parse(localStorage.getItem('appData') || '{}');
       const cachedCounts = JSON.parse(localStorage.getItem('appCounts') || '{}');
-
-      // Immediately update state with cached data
       setAppData(cachedData);
 
-      // Fetch current counts
       const currentCounts = await fetchCounts();
-
       const categories = ['jokes', 'thoughts', 'fitness', 'finance', 'misc'];
       const combinedData = { ...cachedData };
 
@@ -55,17 +56,13 @@ export default function Home() {
         if (cachedCounts[category] !== currentCounts[category] || !cachedData[category]) {
           const data = await fetchData(category);
           combinedData[category] = data;
-        } else {
-          console.log(`Using cached data for category: ${category}`);
         }
       });
       await Promise.all(dataFetchPromises);
 
-      // Store the fetched data and counts in local storage
       localStorage.setItem('appData', JSON.stringify(combinedData));
       localStorage.setItem('appCounts', JSON.stringify(currentCounts));
 
-      // Combine data for different users
       const userData = {};
       Object.keys(combinedData).forEach((category) => {
         combinedData[category].forEach(({ user, id, texted }) => {
@@ -74,7 +71,6 @@ export default function Home() {
         });
       });
 
-      // Update state with the combined data
       setAppData(userData);
     }
 
@@ -82,7 +78,7 @@ export default function Home() {
   }, []);
 
   const getItems = (category, selectedUser) => {
-    if (!appData || Object.keys(appData).length === 0) return {}; // Handle case where data is not loaded yet
+    if (!appData || Object.keys(appData).length === 0) return {};
 
     if (selectedUser === 'all') {
       const combinedItems = {};
@@ -100,7 +96,7 @@ export default function Home() {
     if (selectedUser === 'others') {
       const otherItems = {};
       Object.keys(appData).forEach((user) => {
-        if (user.startsWith('other_') && appData[user][category]) {  // Check if the category exists
+        if (user.startsWith('other_') && appData[user][category]) {
           Object.entries(appData[user][category])
             .sort((a, b) => b[0] - a[0])
             .forEach(([key, item]) => {
@@ -110,7 +106,7 @@ export default function Home() {
       });
       return otherItems;
     }
-    return Object.entries(appData[selectedUser]?.[category] || {})  // Safe access with optional chaining
+    return Object.entries(appData[selectedUser]?.[category] || {})
       .sort((a, b) => b[0] - a[0])
       .reduce(
         (acc, [key, item]) => ({
@@ -126,7 +122,7 @@ export default function Home() {
       if (appData[user] && appData[user][type]) {
         counts[user] = Object.keys(appData[user][type]).length;
       } else {
-        counts[user] = 0; // Or any default value you prefer
+        counts[user] = 0;
       }
       return counts;
     }, {});
@@ -153,15 +149,11 @@ export default function Home() {
   };
 
   const handleAuthSubmit = async () => {
-    console.log('Submitting auth form');
-    console.log('Auth Details:', authDetails);
-
     if (isRegisterMode) {
       if (authDetails.password !== authDetails.confirmPassword) {
         alert('Passwords do not match');
         return;
       }
-      // Registration API call
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
@@ -174,19 +166,15 @@ export default function Home() {
         }),
       });
 
-      console.log('Registration response:', response);
-
       if (response.ok) {
         const result = await response.json();
-        setCurrentUser({ name: result.data.name });  // Set the currentUser as an object with a name property
-        console.log('Registration successful:', result.data.name);
+        setCurrentUser({ name: result.data.name });
         setIsAuthDialogOpen(false);
       } else {
         const errorData = await response.json();
         alert(`Registration failed: ${errorData.error}`);
       }
     } else {
-      // Login API call
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
@@ -198,20 +186,15 @@ export default function Home() {
         }),
       });
 
-      console.log('Login response:', response);
-
       if (response.ok) {
         const data = await response.json();
-        setCurrentUser({ name: data.user.name });  // Set the currentUser correctly
-        console.log('Login successful:', data.user.name);
+        setCurrentUser({ name: data.user.name });
         setIsAuthDialogOpen(false);
       } else {
         alert('Login failed');
       }
     }
   };
-
-
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -245,6 +228,10 @@ export default function Home() {
     setIsMeetDialogOpen(false);
   };
 
+  const handleHomeClick = () => {
+    setInMeeting(false);
+  };
+
   const handleEntryChange = (e) => {
     const { name, value } = e.target;
     if (name === 'user' && value !== 'other') {
@@ -260,8 +247,6 @@ export default function Home() {
 
   const handleAddEntry = async () => {
     let userToSave = newEntry.user;
-
-    // If "Other" is selected, append the entered name
     if (newEntry.user === 'other') {
       userToSave = `other_${newEntry.otherUser.toLowerCase()}`;
     }
@@ -296,25 +281,22 @@ export default function Home() {
     setHighlightedItem(id);
   };
 
-  const handleHomeClick = () => {
-    window.location.reload();
-  };
-
   return (
     <div className="app-container">
-      <span className="app-title">📚✒️ Idea Logs 🌍
-        {!inMeeting && (
-          <button className="header-button" onClick={handleMeetDialogOpen}>
-            Meet
-          </button>
-        )}
-        {inMeeting && (
-          <button className="header-button" onClick={handleHomeClick}>
-            Home
-          </button>
-        )}
-
-        {/* Rightmost section with login/register icon */}
+      <div className="header-container">
+        <div className="title-section">
+          <h1 className="app-title">📚✒️ Idea Logs</h1>
+        </div>
+        <div
+          className="globe-interaction"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          <GlobeComponent size={150} onClick={handleMeetDialogOpen} isHovering={isHovering} />
+          <span className={`globe-text ${isHovering ? 'hovered' : ''}`}>
+            {inMeeting ? 'HOME' : 'DISCOVER'}
+          </span>
+        </div>
         <div className="rightmost-section">
           <button className="icon-button" onClick={() => setIsAuthDialogOpen(true)}>
             👤
@@ -323,7 +305,8 @@ export default function Home() {
             {currentUser ? currentUser.name : 'Not logged in'}
           </span>
         </div>
-      </span>
+      </div>
+
 
       {isAuthDialogOpen && (
         <div className="dialog-overlay">
