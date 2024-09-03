@@ -1,15 +1,19 @@
 import dynamic from 'next/dynamic';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DisplaySection from '../components/DisplaySection';
 import PreCallSetup from '../components/PreCallSetup';
 import VideoCall from '../components/VideoCall';
+import { useAppData } from '../hooks/useAppData';
+import { categorizedUsers } from '../utils/categorizedUsers';
+import { filterItems } from '../utils/filterItems';
+import { useAuth } from '../hooks/useAuth';
 
 const GlobeComponent = dynamic(() => import('../components/GlobeComponent'), {
   ssr: false,
 });
 
 export default function Home() {
-  const [appData, setAppData] = useState({});
+  const appData = useAppData();
   const [selectedJokesUser, setSelectedJokesUser] = useState('all');
   const [selectedThoughtsUser, setSelectedThoughtsUser] = useState('all');
   const [selectedFitnessUser, setSelectedFitnessUser] = useState('all');
@@ -24,177 +28,17 @@ export default function Home() {
   const [inMeeting, setInMeeting] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
   const [setupOptions, setSetupOptions] = useState({});
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [authDetails, setAuthDetails] = useState({ name: '', phone: '', password: '', confirmPassword: '' });
-  const [currentUser, setCurrentUser] = useState(null);
   const [isHovering, setIsHovering] = useState(false);
-
-  useEffect(() => {
-    async function fetchCounts() {
-      const response = await fetch(`/api/getCounts`);
-      const data = await response.json();
-      return data;
-    }
-
-    async function fetchData(type) {
-      const response = await fetch(`/api/getData?type=${type}`);
-      const data = await response.json();
-      return data;
-    }
-
-    async function loadAppData() {
-      const cachedData = JSON.parse(localStorage.getItem('appData') || '{}');
-      const cachedCounts = JSON.parse(localStorage.getItem('appCounts') || '{}');
-      setAppData(cachedData);
-
-      const currentCounts = await fetchCounts();
-      const categories = ['jokes', 'thoughts', 'fitness', 'finance', 'misc'];
-      const combinedData = { ...cachedData };
-
-      const dataFetchPromises = categories.map(async (category) => {
-        if (cachedCounts[category] !== currentCounts[category] || !cachedData[category]) {
-          const data = await fetchData(category);
-          combinedData[category] = data;
-        }
-      });
-      await Promise.all(dataFetchPromises);
-
-      localStorage.setItem('appData', JSON.stringify(combinedData));
-      localStorage.setItem('appCounts', JSON.stringify(currentCounts));
-
-      const userData = {};
-      Object.keys(combinedData).forEach((category) => {
-        combinedData[category].forEach(({ user, id, texted }) => {
-          if (!userData[user]) userData[user] = { jokes: {}, thoughts: {}, fitness: {}, finance: {}, misc: {} };
-          userData[user][category][id] = texted;
-        });
-      });
-
-      setAppData(userData);
-    }
-
-    loadAppData();
-  }, []);
-
-  const getItems = (category, selectedUser) => {
-    if (!appData || Object.keys(appData).length === 0) return {};
-
-    if (selectedUser === 'all') {
-      const combinedItems = {};
-      Object.keys(appData).forEach((user) => {
-        if (appData[user][category]) {
-          Object.entries(appData[user][category])
-            .sort((a, b) => b[0] - a[0])
-            .forEach(([key, item]) => {
-              combinedItems[`${user}_${key}`] = { texted: item, user };
-            });
-        }
-      });
-      return combinedItems;
-    }
-    if (selectedUser === 'others') {
-      const otherItems = {};
-      Object.keys(appData).forEach((user) => {
-        if (user.startsWith('other_') && appData[user][category]) {
-          Object.entries(appData[user][category])
-            .sort((a, b) => b[0] - a[0])
-            .forEach(([key, item]) => {
-              otherItems[`${user}_${key}`] = { texted: item, user: user.split('_')[1] };
-            });
-        }
-      });
-      return otherItems;
-    }
-    return Object.entries(appData[selectedUser]?.[category] || {})
-      .sort((a, b) => b[0] - a[0])
-      .reduce(
-        (acc, [key, item]) => ({
-          ...acc,
-          [`${selectedUser}_${key}`]: { texted: item, user: selectedUser },
-        }),
-        {}
-      );
-  };
-
-  const getCounts = (type) => {
-    return Object.keys(appData).reduce((counts, user) => {
-      if (appData[user] && appData[user][type]) {
-        counts[user] = Object.keys(appData[user][type]).length;
-      } else {
-        counts[user] = 0;
-      }
-      return counts;
-    }, {});
-  };
-
-  const categorizedUsers = (category) => {
-    const counts = getCounts(category);
-    const sortedUsers = Object.keys(counts)
-      .filter((user) => !user.startsWith('other_'))
-      .sort((a, b) => counts[b] - counts[a]);
-
-    const othersExist = Object.keys(counts).some((user) => user.startsWith('other_'));
-
-    return [
-      { user: 'all', label: 'All' },
-      ...sortedUsers.map((user) => ({ user, label: user.charAt(0).toUpperCase() + user.slice(1) })),
-      ...(othersExist ? [{ user: 'others', label: 'Others' }] : []),
-    ];
-  };
-
-  const handleAuthChange = (e) => {
-    const { name, value } = e.target;
-    setAuthDetails({ ...authDetails, [name]: value });
-  };
-
-  const handleAuthSubmit = async () => {
-    if (isRegisterMode) {
-      if (authDetails.password !== authDetails.confirmPassword) {
-        alert('Passwords do not match');
-        return;
-      }
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: authDetails.name,
-          phone: authDetails.phone,
-          password: authDetails.password,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setCurrentUser({ name: result.data.name });
-        setIsAuthDialogOpen(false);
-      } else {
-        const errorData = await response.json();
-        alert(`Registration failed: ${errorData.error}`);
-      }
-    } else {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: authDetails.phone,
-          password: authDetails.password,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentUser({ name: data.user.name });
-        setIsAuthDialogOpen(false);
-      } else {
-        alert('Login failed');
-      }
-    }
-  };
+  const {
+    currentUser,
+    isAuthDialogOpen,
+    isRegisterMode,
+    authDetails,
+    setIsAuthDialogOpen,
+    setIsRegisterMode,
+    handleAuthChange,
+    handleAuthSubmit,
+  } = useAuth();
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -293,20 +137,23 @@ export default function Home() {
           onMouseLeave={() => setIsHovering(false)}
         >
           <GlobeComponent size={150} onClick={handleMeetDialogOpen} isHovering={isHovering} />
-          <span className={`globe-text ${isHovering ? 'hovered' : ''}`}>
-            {inMeeting ? 'HOME' : 'DISCOVER'}
-          </span>
+          {isHovering && (
+            <span className="globe-text">
+              {inMeeting ? 'RETURN TO HOME' : 'JOIN MEET'}
+            </span>
+          )}
         </div>
         <div className="rightmost-section">
-          <button className="icon-button" onClick={() => setIsAuthDialogOpen(true)}>
-            👤
-          </button>
-          <span className="login-status">
-            {currentUser ? currentUser.name : 'Not logged in'}
-          </span>
+          <div className="icon-with-text">
+            <button className="icon-button" onClick={() => setIsAuthDialogOpen(true)}>
+              👤
+            </button>
+            <span className="login-status">
+              {currentUser ? currentUser.name : 'Not logged in'}
+            </span>
+          </div>
         </div>
       </div>
-
 
       {isAuthDialogOpen && (
         <div className="dialog-overlay">
@@ -376,18 +223,18 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
-              {categorizedUsers('jokes').map(({ user, label }) => (
+              {categorizedUsers(appData, 'jokes').map(({ user, label }) => (
                 <span
                   key={user}
                   className={`filter-item ${user}  ${selectedJokesUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedJokesUser(user)}
                 >
-                  {label} ({Object.keys(getItems('jokes', user)).length})
+                  {label} ({Object.keys(filterItems(appData, 'jokes', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
-              items={getItems('jokes', selectedJokesUser)}
+              items={filterItems(appData, 'jokes', selectedJokesUser)}
               highlightedItem={highlightedItem}
               onItemClick={handleItemClick}
               selectedUser={selectedJokesUser}
@@ -403,18 +250,18 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
-              {categorizedUsers('thoughts').map(({ user, label }) => (
+              {categorizedUsers(appData, 'thoughts').map(({ user, label }) => (
                 <span
                   key={user}
                   className={`filter-item ${user}  ${selectedThoughtsUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedThoughtsUser(user)}
                 >
-                  {label} ({Object.keys(getItems('thoughts', user)).length})
+                  {label} ({Object.keys(filterItems(appData, 'thoughts', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
-              items={getItems('thoughts', selectedThoughtsUser)}
+              items={filterItems(appData, 'thoughts', selectedThoughtsUser)}
               highlightedItem={highlightedItem}
               onItemClick={handleItemClick}
               selectedUser={selectedThoughtsUser}
@@ -430,18 +277,18 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
-              {categorizedUsers('fitness').map(({ user, label }) => (
+              {categorizedUsers(appData, 'fitness').map(({ user, label }) => (
                 <span
                   key={user}
                   className={`filter-item ${user}  ${selectedFitnessUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedFitnessUser(user)}
                 >
-                  {label} ({Object.keys(getItems('fitness', user)).length})
+                  {label} ({Object.keys(filterItems(appData, 'fitness', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
-              items={getItems('fitness', selectedFitnessUser)}
+              items={filterItems(appData, 'fitness', selectedFitnessUser)}
               highlightedItem={highlightedItem}
               onItemClick={handleItemClick}
               selectedUser={selectedFitnessUser}
@@ -457,18 +304,18 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
-              {categorizedUsers('finance').map(({ user, label }) => (
+              {categorizedUsers(appData, 'finance').map(({ user, label }) => (
                 <span
                   key={user}
                   className={`filter-item ${user}  ${selectedFinanceUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedFinanceUser(user)}
                 >
-                  {label} ({Object.keys(getItems('finance', user)).length})
+                  {label} ({Object.keys(filterItems(appData, 'finance', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
-              items={getItems('finance', selectedFinanceUser)}
+              items={filterItems(appData, 'finance', selectedFinanceUser)}
               highlightedItem={highlightedItem}
               onItemClick={handleItemClick}
               selectedUser={selectedFinanceUser}
@@ -484,18 +331,18 @@ export default function Home() {
               </button>
             </div>
             <div className="user-filter">
-              {categorizedUsers('misc').map(({ user, label }) => (
+              {categorizedUsers(appData, 'misc').map(({ user, label }) => (
                 <span
                   key={user}
                   className={`filter-item ${user}  ${selectedMiscUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedMiscUser(user)}
                 >
-                  {label} ({Object.keys(getItems('misc', user)).length})
+                  {label} ({Object.keys(filterItems(appData, 'misc', user)).length})
                 </span>
               ))}
             </div>
             <DisplaySection
-              items={getItems('misc', selectedMiscUser)}
+              items={filterItems(appData, 'misc', selectedMiscUser)}
               highlightedItem={highlightedItem}
               onItemClick={handleItemClick}
               selectedUser={selectedMiscUser}

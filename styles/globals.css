@@ -19,7 +19,7 @@ body {
 
 .app-container {
   text-align: center;
-  margin: 20px auto;
+  margin: 10px auto;
   max-width: var(--max-width);
   background: var(--glass-background);
   backdrop-filter: blur(20px);
@@ -32,70 +32,70 @@ body {
 
 .header-container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  position: relative;
+  justify-content: space-between;
+  padding: 0;
+  height: auto;
 }
 
 .title-section {
   flex: 1;
-  text-align: left;
-}
-
-.app-title {
-  font-size: 2.5em;
-  font-weight: bold;
-  color: rgb(var(--foreground-rgb));
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.938);
-  margin: 0;
+  display: flex;
+  align-items: center;
+  margin-right: auto;
 }
 
 .globe-interaction {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 150px; /* Adjust this based on the globe size */
-  margin: 0 auto; /* Center the globe-interaction section horizontally */
-}
-
-.globe-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.globe-canvas {
-  width: 100%;
-  height: 100%;
+  position: relative; /* Ensures the hover text is correctly positioned */
 }
 
 .globe-text {
   font-size: 1em;
   font-weight: bold;
-  transition: transform 0.3s ease-in-out;
   text-align: center;
-  margin-top: 10px; /* Add some space between the globe and the text */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10;
 }
 
-.hovered {
-  transform: scale(1.1);
+.globe-interaction:hover .globe-text {
+  opacity: 1;
+}
+
+.globe-component {
+  transition: transform 0.3s ease-in-out;
 }
 
 .globe-component:hover {
   transform: rotateY(360deg);
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
-
 
 .rightmost-section {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center; /* Centers the icon and text vertically */
+  justify-content: flex-end;
+}
+
+.icon-with-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .icon-button {
@@ -110,10 +110,10 @@ body {
   font-size: 1em;
   color: rgb(var(--foreground-rgb));
   font-weight: bold;
+  text-align: center;
 }
 
 .content-container {
-  margin-top: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -310,19 +310,6 @@ body {
   border: 1px solid #ddd;
   border-radius: var(--border-radius);
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-}
-
-.globe-container {
-  width: auto;
-  height: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.globe-canvas {
-  width: 100%;
-  height: 100%;
 }
 
 @media (max-width: 768px) {
