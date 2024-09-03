@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function useAppData() {
+export function useLoadAppData() {
   const [appData, setAppData] = useState({});
 
   useEffect(() => {

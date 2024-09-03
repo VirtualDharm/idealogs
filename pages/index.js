@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import DisplaySection from '../components/DisplaySection';
 import PreCallSetup from '../components/PreCallSetup';
 import VideoCall from '../components/VideoCall';
-import { useAppData } from '../hooks/useAppData';
+import { useLoadAppData } from '../hooks/useLoadAppData';
+import { useCenterDialog } from '../hooks/useCenterDialog';
 import { categorizedUsers } from '../utils/categorizedUsers';
 import { filterItems } from '../utils/filterItems';
 import { useAuth } from '../hooks/useAuth';
@@ -13,16 +14,23 @@ const GlobeComponent = dynamic(() => import('../components/GlobeComponent'), {
 });
 
 export default function Home() {
-  const appData = useAppData();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
+
+  const appData = useLoadAppData();
+
+  useCenterDialog(isDialogOpen);      // For the Add New Entry dialog
+  useCenterDialog(isAuthDialogOpen);  // For the Login/Register dialog
+  useCenterDialog(isMeetDialogOpen);  // For the Join Meet dialog
+
   const [selectedJokesUser, setSelectedJokesUser] = useState('all');
   const [selectedThoughtsUser, setSelectedThoughtsUser] = useState('all');
   const [selectedFitnessUser, setSelectedFitnessUser] = useState('all');
   const [selectedFinanceUser, setSelectedFinanceUser] = useState('all');
   const [selectedMiscUser, setSelectedMiscUser] = useState('all');
   const [highlightedItem, setHighlightedItem] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: '', user: '', texted: '', otherUser: '' });
-  const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [roomName, setRoomName] = useState('');
   const [inMeeting, setInMeeting] = useState(false);
@@ -31,10 +39,8 @@ export default function Home() {
   const [isHovering, setIsHovering] = useState(false);
   const {
     currentUser,
-    isAuthDialogOpen,
     isRegisterMode,
     authDetails,
-    setIsAuthDialogOpen,
     setIsRegisterMode,
     handleAuthChange,
     handleAuthSubmit,
