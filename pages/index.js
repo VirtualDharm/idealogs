@@ -19,6 +19,10 @@ export default function Home() {
   const [inMeeting, setInMeeting] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
   const [setupOptions, setSetupOptions] = useState({});
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [authDetails, setAuthDetails] = useState({ name: '', phone: '', password: '', confirmPassword: '' });
+  const [currentUser, setCurrentUser] = useState(null); // State to store current user
 
   useEffect(() => {
     async function fetchCounts() {
@@ -26,27 +30,27 @@ export default function Home() {
       const data = await response.json();
       return data;
     }
-  
+
     async function fetchData(type) {
       const response = await fetch(`/api/getData?type=${type}`);
       const data = await response.json();
       return data;
     }
-  
+
     async function loadAppData() {
       // Load cached data
       const cachedData = JSON.parse(localStorage.getItem('appData') || '{}');
       const cachedCounts = JSON.parse(localStorage.getItem('appCounts') || '{}');
-  
+
       // Immediately update state with cached data
       setAppData(cachedData);
-  
+
       // Fetch current counts
       const currentCounts = await fetchCounts();
-  
+
       const categories = ['jokes', 'thoughts', 'fitness', 'finance', 'misc'];
       const combinedData = { ...cachedData };
-  
+
       const dataFetchPromises = categories.map(async (category) => {
         if (cachedCounts[category] !== currentCounts[category] || !cachedData[category]) {
           const data = await fetchData(category);
@@ -56,11 +60,11 @@ export default function Home() {
         }
       });
       await Promise.all(dataFetchPromises);
-  
+
       // Store the fetched data and counts in local storage
       localStorage.setItem('appData', JSON.stringify(combinedData));
       localStorage.setItem('appCounts', JSON.stringify(currentCounts));
-  
+
       // Combine data for different users
       const userData = {};
       Object.keys(combinedData).forEach((category) => {
@@ -69,17 +73,17 @@ export default function Home() {
           userData[user][category][id] = texted;
         });
       });
-  
+
       // Update state with the combined data
       setAppData(userData);
     }
-  
+
     loadAppData();
   }, []);
 
   const getItems = (category, selectedUser) => {
     if (!appData || Object.keys(appData).length === 0) return {}; // Handle case where data is not loaded yet
-  
+
     if (selectedUser === 'all') {
       const combinedItems = {};
       Object.keys(appData).forEach((user) => {
@@ -142,6 +146,72 @@ export default function Home() {
       ...(othersExist ? [{ user: 'others', label: 'Others' }] : []),
     ];
   };
+
+  const handleAuthChange = (e) => {
+    const { name, value } = e.target;
+    setAuthDetails({ ...authDetails, [name]: value });
+  };
+
+  const handleAuthSubmit = async () => {
+    console.log('Submitting auth form');
+    console.log('Auth Details:', authDetails);
+
+    if (isRegisterMode) {
+      if (authDetails.password !== authDetails.confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+      // Registration API call
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: authDetails.name,
+          phone: authDetails.phone,
+          password: authDetails.password,
+        }),
+      });
+
+      console.log('Registration response:', response);
+
+      if (response.ok) {
+        const result = await response.json();
+        setCurrentUser({ name: result.data.name });  // Set the currentUser as an object with a name property
+        console.log('Registration successful:', result.data.name);
+        setIsAuthDialogOpen(false);
+      } else {
+        const errorData = await response.json();
+        alert(`Registration failed: ${errorData.error}`);
+      }
+    } else {
+      // Login API call
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: authDetails.phone,
+          password: authDetails.password,
+        }),
+      });
+
+      console.log('Login response:', response);
+
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUser({ name: data.user.name });  // Set the currentUser correctly
+        console.log('Login successful:', data.user.name);
+        setIsAuthDialogOpen(false);
+      } else {
+        alert('Login failed');
+      }
+    }
+  };
+
+
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -243,7 +313,66 @@ export default function Home() {
             Home
           </button>
         )}
+
+        {/* Rightmost section with login/register icon */}
+        <div className="rightmost-section">
+          <button className="icon-button" onClick={() => setIsAuthDialogOpen(true)}>
+            👤
+          </button>
+          <span className="login-status">
+            {currentUser ? currentUser.name : 'Not logged in'}
+          </span>
+        </div>
       </span>
+
+      {isAuthDialogOpen && (
+        <div className="dialog-overlay">
+          <div className="dialog">
+            <span className="dialog-title">{isRegisterMode ? 'Register' : 'Login'}</span>
+            {isRegisterMode && (
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                value={authDetails.name}
+                onChange={handleAuthChange}
+              />
+            )}
+            <input
+              type="text"
+              name="phone"
+              placeholder="Phone"
+              value={authDetails.phone}
+              onChange={handleAuthChange}
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={authDetails.password}
+              onChange={handleAuthChange}
+            />
+            {isRegisterMode && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={authDetails.confirmPassword}
+                onChange={handleAuthChange}
+              />
+            )}
+            <div className="dialog-buttons">
+              <button onClick={handleAuthSubmit}>{isRegisterMode ? 'Register' : 'Login'}</button>
+              <button onClick={() => setIsAuthDialogOpen(false)}>Cancel</button>
+            </div>
+            <div>
+              <button onClick={() => setIsRegisterMode(!isRegisterMode)}>
+                {isRegisterMode ? 'Switch to Login' : 'Switch to Register'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {inMeeting ? (
         <div className="meeting-container">
