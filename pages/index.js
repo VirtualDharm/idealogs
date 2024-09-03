@@ -15,15 +15,7 @@ const GlobeComponent = dynamic(() => import('../components/GlobeComponent'), {
 
 export default function Home() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isMeetDialogOpen, setIsMeetDialogOpen] = useState(false);
-
-  const appData = useLoadAppData();
-
-  useCenterDialog(isDialogOpen);      // For the Add New Entry dialog
-  useCenterDialog(isAuthDialogOpen);  // For the Login/Register dialog
-  useCenterDialog(isMeetDialogOpen);  // For the Join Meet dialog
-
   const [selectedJokesUser, setSelectedJokesUser] = useState('all');
   const [selectedThoughtsUser, setSelectedThoughtsUser] = useState('all');
   const [selectedFitnessUser, setSelectedFitnessUser] = useState('all');
@@ -37,14 +29,23 @@ export default function Home() {
   const [setupComplete, setSetupComplete] = useState(false);
   const [setupOptions, setSetupOptions] = useState({});
   const [isHovering, setIsHovering] = useState(false);
+
+  const appData = useLoadAppData();
+
   const {
     currentUser,
+    isAuthDialogOpen,
     isRegisterMode,
     authDetails,
+    setIsAuthDialogOpen,
     setIsRegisterMode,
     handleAuthChange,
     handleAuthSubmit,
   } = useAuth();
+
+  useCenterDialog(isDialogOpen);      // For the Add New Entry dialog
+  useCenterDialog(isAuthDialogOpen);  // For the Login/Register dialog
+  useCenterDialog(isMeetDialogOpen);  // For the Join Meet dialog
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -232,7 +233,7 @@ export default function Home() {
               {categorizedUsers(appData, 'jokes').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${user}  ${selectedJokesUser === user ? 'selected' : ''}`}
+                  className={`filter-item ${user} ${selectedJokesUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedJokesUser(user)}
                 >
                   {label} ({Object.keys(filterItems(appData, 'jokes', user)).length})
@@ -259,7 +260,7 @@ export default function Home() {
               {categorizedUsers(appData, 'thoughts').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${user}  ${selectedThoughtsUser === user ? 'selected' : ''}`}
+                  className={`filter-item ${user} ${selectedThoughtsUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedThoughtsUser(user)}
                 >
                   {label} ({Object.keys(filterItems(appData, 'thoughts', user)).length})
@@ -286,7 +287,7 @@ export default function Home() {
               {categorizedUsers(appData, 'fitness').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${user}  ${selectedFitnessUser === user ? 'selected' : ''}`}
+                  className={`filter-item ${user} ${selectedFitnessUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedFitnessUser(user)}
                 >
                   {label} ({Object.keys(filterItems(appData, 'fitness', user)).length})
@@ -313,7 +314,7 @@ export default function Home() {
               {categorizedUsers(appData, 'finance').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${user}  ${selectedFinanceUser === user ? 'selected' : ''}`}
+                  className={`filter-item ${user} ${selectedFinanceUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedFinanceUser(user)}
                 >
                   {label} ({Object.keys(filterItems(appData, 'finance', user)).length})
@@ -340,7 +341,7 @@ export default function Home() {
               {categorizedUsers(appData, 'misc').map(({ user, label }) => (
                 <span
                   key={user}
-                  className={`filter-item ${user}  ${selectedMiscUser === user ? 'selected' : ''}`}
+                  className={`filter-item ${user} ${selectedMiscUser === user ? 'selected' : ''}`}
                   onClick={() => setSelectedMiscUser(user)}
                 >
                   {label} ({Object.keys(filterItems(appData, 'misc', user)).length})
