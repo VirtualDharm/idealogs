@@ -143,7 +143,7 @@ export default function Home() {
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
-          <GlobeComponent size={150} onClick={handleMeetDialogOpen} isHovering={isHovering} />
+          <GlobeComponent size={150} onClick={inMeeting ? handleHomeClick : handleMeetDialogOpen} isHovering={isHovering} />
           {isHovering && (
             <span className="globe-text">
               {inMeeting ? 'RETURN TO HOME' : 'JOIN MEET'}

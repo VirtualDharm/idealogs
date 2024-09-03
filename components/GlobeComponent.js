@@ -19,7 +19,7 @@ const GlobeComponent = ({ size, onClick, isHovering }) => {
       globe.controls().autoRotateSpeed = 1;
 
       // Adjust camera distance to fit the globe within the size
-      globe.camera().position.z = size * 1.67 ; // Fine-tuned camera distance
+      globe.camera().position.z = size * 1.67; // Fine-tuned camera distance
 
       const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
       globeEl.current.scene().add(ambientLight);
