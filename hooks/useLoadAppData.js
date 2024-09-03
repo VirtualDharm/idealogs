@@ -50,5 +50,5 @@ export function useLoadAppData() {
     loadAppData();
   }, []);
 
-  return appData;
+  return { appData, setAppData };
 }

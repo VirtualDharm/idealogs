@@ -30,7 +30,7 @@ export default function Home() {
   const [setupOptions, setSetupOptions] = useState({});
   const [isHovering, setIsHovering] = useState(false);
 
-  const appData = useLoadAppData();
+  const { appData, setAppData } = useLoadAppData();
 
   const {
     currentUser,
