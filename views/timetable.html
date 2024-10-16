@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Time Scheduler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .schedule {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .time-block {
+            padding: 20px;
+            border-radius: 8px;
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        /* Study/Seating tasks */
+        .study {
+            background-color: #4CAF50; /* Green */
+        }
+        /* Physical/Social tasks */
+        .physical-social {
+            background-color: #FF9800; /* Orange */
+        }
+        .time-block h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .time-block p {
+            margin: 0;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Total Hours (Physical/Social and Study)</h2>
+    <p><strong>Daily:</strong> 15 hours Study, 5 hours Physical/Social</p>
+    <p><strong>Weekly:</strong> 105 hours Study, 35 hours Physical/Social</p>
+    <p><strong>Monthly:</strong> 420 hours Study, 140 hours Physical/Social</p>
+    <p><strong>Yearly:</strong> 5040 hours Study, 1680 hours Physical/Social</p>
+
+    <h1>Daily Time Scheduler</h1>
+
+    <div class="schedule">
+        <!-- Study/Seating tasks -->
+        <div class="time-block study">
+            <h3>1:00 AM - 6:00 AM</h3>
+            <p>DSA (Study)</p>
+        </div>
+        <div class="time-block physical-social">
+            <h3>6:00 AM - 7:00 AM</h3>
+            <p>Family Work (Physical/Social)</p>
+        </div>
+        <div class="time-block physical-social">
+            <h3>7:00 AM - 8:00 AM</h3>
+            <p>Training (Physical/Social)</p>
+        </div>
+        <div class="time-block study">
+            <h3>8:00 AM - 10:00 AM</h3>
+            <p>Apply (Seating)</p>
+        </div>
+        <div class="time-block study">
+            <h3>10:00 AM - 6:00 PM</h3>
+            <p>Development (Seating)</p>
+        </div>
+        <div class="time-block physical-social">
+            <h3>6:00 PM - 9:00 PM</h3>
+            <p>Friends (Physical/Social)</p>
+        </div>
+        <div class="time-block study">
+            <h3>9:00 PM - 1:00 AM</h3>
+            <p>Sleep</p>
+        </div>
+    </div>
+
+</body>
+</html>
