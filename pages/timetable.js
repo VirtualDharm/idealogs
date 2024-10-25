@@ -2,19 +2,19 @@ import React from 'react';
 
 export default function Timetable() {
     const timeData = [
-        { period: 'Daily', hours: [15, 5, 4], days: [0.625, 0.208, 0.167] },
-        { period: 'Weekly', hours: [105, 35, 28], days: [4.375, 1.458, 1.167] },
-        { period: 'Monthly', hours: [420, 140, 112], days: [17.5, 5.833, 4.667] },
-        { period: '1st Year', hours: [5040, 1680, 1344], days: [210, 70, 56], years: 1 },
-        { period: '2nd Year', hours: [10080, 3360, 2688], days: [420, 140, 112], fractionalYears: ['1.2', '0.4', '0.3'] },
-        { period: '3rd Year', hours: [15120, 5040, 4032], days: [630, 210, 168], fractionalYears: ['1.7', '0.6', '0.5'] },
-        { period: '4th Year', hours: [20160, 6720, 5376], days: [840, 280, 224], fractionalYears: ['2.3', '0.8', '0.6'] },
-        { period: '5th Year', hours: [25200, 8400, 6720], days: [1050, 350, 280], fractionalYears: ['2.9', '1.0', '0.8'] },
+        { period: 'Daily', hours: [15.5, 4.5, 4], days: [0.646, 0.188, 0.167] },
+        { period: 'Weekly', hours: [108.5, 31.5, 28], days: [4.521, 1.313, 1.167] },
+        { period: 'Monthly', hours: [465, 135, 120], days: [19.375, 5.625, 5] },
+        { period: '1st Year', hours: [5580, 1620, 1440], days: [232.5, 67.5, 60], years: 1 },
+        { period: '2nd Year', hours: [11160, 3240, 2880], days: [465, 135, 120], fractionalYears: ['1.27', '0.37', '0.33'] },
+        { period: '3rd Year', hours: [16740, 4860, 4320], days: [697.5, 202.5, 180], fractionalYears: ['1.91', '0.56', '0.49'] },
+        { period: '4th Year', hours: [22320, 6480, 5760], days: [930, 270, 240], fractionalYears: ['2.55', '0.74', '0.66'] },
+        { period: '5th Year', hours: [27900, 8100, 7200], days: [1162.5, 337.5, 300], fractionalYears: ['3.19', '0.93', '0.82'] },
     ];
 
     return (
         <div style={styles.container}>
-            <h2 style={{ ...styles.heading, textAlign: 'left' }}>Total Hours (Physical/Social, Study, and Sleep)</h2>
+            <h2 style={{ ...styles.heading, textAlign: 'left' }}>Total Hours (Study, Social and Sleep)</h2>
             <div style={styles.timeList}>
                 {timeData.map((item, index) => (
                     <p key={index} style={styles.timeItem}>
@@ -30,16 +30,12 @@ export default function Timetable() {
 
             <div style={styles.schedule}>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>1:00 AM - 6:00 AM</h3>
+                    <h3 style={styles.timeBlockHeading}>1:00 AM - 6:30 AM</h3>
                     <p style={styles.timeBlockText}>DSA</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.physical }}>
-                    <h3 style={styles.timeBlockHeading}>6:00 AM - 7:00 AM</h3>
-                    <p style={styles.timeBlockText}>Family Work</p>
-                </div>
-                <div style={{ ...styles.timeBlock, ...styles.physical }}>
-                    <h3 style={styles.timeBlockHeading}>7:00 AM - 8:00 AM</h3>
-                    <p style={styles.timeBlockText}>Training</p>
+                    <h3 style={styles.timeBlockHeading}>6:30 AM - 8:00 AM</h3>
+                    <p style={styles.timeBlockText}>Gym</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
                     <h3 style={styles.timeBlockHeading}>8:00 AM - 10:00 AM</h3>
