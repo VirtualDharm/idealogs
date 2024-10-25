@@ -49,7 +49,7 @@ export default function Timetable() {
                     <h3 style={styles.timeBlockHeading}>10:00 AM - 6:00 PM</h3>
                     <p style={styles.timeBlockText}>Development</p>
                 </div>
-                <div style={{ ...styles.timeBlock, ...styles.physical }}>
+                <div style={{ ...styles.timeBlock, ...styles.physical, opacity: 0.77 }}>
                     <h3 style={styles.timeBlockHeading}>6:00 PM - 9:00 PM</h3>
                     <p style={styles.timeBlockText}>Friends</p>
                 </div>
