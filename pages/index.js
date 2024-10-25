@@ -8,13 +8,10 @@ import { useCenterDialog } from '../hooks/useCenterDialog';
 import { categorizedUsers } from '../utils/categorizedUsers';
 import { filterItems } from '../utils/filterItems';
 import { useAuth } from '../hooks/useAuth';
-import { Redis } from 'ioredis';
 
 const GlobeComponent = dynamic(() => import('../components/GlobeComponent'), {
   ssr: false,
 });
-
-const redis = new Redis(process.env.REDIS_URL || 'redis-15377.c212.ap-south-1-1.ec2.redns.redis-cloud.com:15377');
 
 export default function Home() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
