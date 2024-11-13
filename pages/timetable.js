@@ -30,11 +30,7 @@ export default function Timetable() {
 
             <div style={styles.schedule}>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>1:00 AM - 3:00AM</h3>
-                    <p style={styles.timeBlockText}>Apply</p>
-                </div>
-                <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>3:00 AM - 6:30AM</h3>
+                    <h3 style={styles.timeBlockHeading}>1:00 AM - 6:30AM</h3>
                     <p style={styles.timeBlockText}>DSA</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.physical }}>
@@ -42,8 +38,12 @@ export default function Timetable() {
                     <p style={styles.timeBlockText}>Gym</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>8:00 AM - 6:00 PM</h3>
+                    <h3 style={styles.timeBlockHeading}>8:00 AM - 4:00 PM</h3>
                     <p style={styles.timeBlockText}>Development</p>
+                </div>
+                <div style={{ ...styles.timeBlock, ...styles.study }}>
+                    <h3 style={styles.timeBlockHeading}>4:00 AM - 6:00</h3>
+                    <p style={styles.timeBlockText}>Apply</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.physical, opacity: 0.77 }}>
                     <h3 style={styles.timeBlockHeading}>6:00 PM - 9:00 PM</h3>
