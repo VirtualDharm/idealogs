@@ -2,14 +2,14 @@ import React from 'react';
 
 export default function Timetable() {
     const timeData = [
-        { period: 'Daily', hours: [15.5, 4.5, 4], days: [0.646, 0.188, 0.167] },
-        { period: 'Weekly', hours: [108.5, 31.5, 28], days: [4.521, 1.313, 1.167] },
-        { period: 'Monthly', hours: [465, 135, 120], days: [19.375, 5.625, 5] },
-        { period: '1st Year', hours: [5580, 1620, 1440], days: [232.5, 67.5, 60], years: 1 },
-        { period: '2nd Year', hours: [11160, 3240, 2880], days: [465, 135, 120], fractionalYears: ['1.27', '0.37', '0.33'] },
-        { period: '3rd Year', hours: [16740, 4860, 4320], days: [697.5, 202.5, 180], fractionalYears: ['1.91', '0.56', '0.49'] },
-        { period: '4th Year', hours: [22320, 6480, 5760], days: [930, 270, 240], fractionalYears: ['2.55', '0.74', '0.66'] },
-        { period: '5th Year', hours: [27900, 8100, 7200], days: [1162.5, 337.5, 300], fractionalYears: ['3.19', '0.93', '0.82'] },
+        { period: 'Daily', hours: [17.0, 2.5, 4.5], days: [0.709, 0.104, 0.188] },
+        { period: 'Weekly', hours: [119.0, 17.5, 31.5], days: [4.959, 0.729, 1.313] },
+        { period: 'Monthly', hours: [510.0, 75.0, 135.0], days: [21.25, 3.125, 5.625] },
+        { period: '1st Year', hours: [6120.0, 900.0, 1620.0], days: [255.0, 37.5, 67.5], years: 1 },
+        { period: '2nd Year', hours: [12240.0, 1800.0, 3240.0], days: [510.0, 75.0, 135.0], fractionalYears: ['1.39', '0.21', '0.37'] },
+        { period: '3rd Year', hours: [18360.0, 2700.0, 4860.0], days: [765.0, 112.5, 202.5], fractionalYears: ['2.09', '0.31', '0.56'] },
+        { period: '4th Year', hours: [24480.0, 3600.0, 6480.0], days: [1020.0, 150.0, 270.0], fractionalYears: ['2.79', '0.41', '0.74'] },
+        { period: '5th Year', hours: [30600.0, 4500.0, 8100.0], days: [1275.0, 187.5, 337.5], fractionalYears: ['3.49', '0.52', '0.93'] },
     ];
 
     return (
@@ -30,27 +30,23 @@ export default function Timetable() {
 
             <div style={styles.schedule}>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>1:00 AM - 6:30AM</h3>
+                    <h3 style={styles.timeBlockHeading}>12:00 AM - 6:30AM</h3>
                     <p style={styles.timeBlockText}>DSA</p>
                 </div>
-                <div style={{ ...styles.timeBlock, ...styles.physical }}>
-                    <h3 style={styles.timeBlockHeading}>6:30 AM - 8:00 AM</h3>
-                    <p style={styles.timeBlockText}>Gym</p>
-                </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>8:00 AM - 4:00 PM</h3>
+                    <h3 style={styles.timeBlockHeading}>6:30 AM - 2:00 PM</h3>
                     <p style={styles.timeBlockText}>Development</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>4:00 AM - 6:00</h3>
+                    <h3 style={styles.timeBlockHeading}>2:00 PM - 5:00</h3>
                     <p style={styles.timeBlockText}>Apply</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.physical, opacity: 0.77 }}>
-                    <h3 style={styles.timeBlockHeading}>6:00 PM - 9:00 PM</h3>
+                    <h3 style={styles.timeBlockHeading}>5:00 PM - 7:30 PM</h3>
                     <p style={styles.timeBlockText}>Friends</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.sleep }}>
-                    <h3 style={styles.timeBlockHeading}>9:00 PM - 1:00 AM</h3>
+                    <h3 style={styles.timeBlockHeading}>7:30 PM - 12:00 AM</h3>
                     <p style={styles.timeBlockText}>Sleep</p>
                 </div>
             </div>
