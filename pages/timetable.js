@@ -30,19 +30,23 @@ export default function Timetable() {
 
             <div style={styles.schedule}>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>12:00 AM - 6:30AM</h3>
+                    <h3 style={styles.timeBlockHeading}>12:00 AM - 2:00</h3>
+                    <p style={styles.timeBlockText}>Apply</p>
+                </div>
+                <div style={{ ...styles.timeBlock, ...styles.study }}>
+                    <h3 style={styles.timeBlockHeading}>2:00 AM - 6:30AM</h3>
                     <p style={styles.timeBlockText}>DSA</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
                     <h3 style={styles.timeBlockHeading}>6:30 AM - 9:30 PM</h3>
-                    <p style={styles.timeBlockText}>Apply</p>
+                    <p style={styles.timeBlockText}>TA</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>9:30 AM - 2:00 PM</h3>
+                    <h3 style={styles.timeBlockHeading}>9:30 AM - 3:00 PM</h3>
                     <p style={styles.timeBlockText}>Development</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.study }}>
-                    <h3 style={styles.timeBlockHeading}>2:00 PM - 5:00</h3>
+                    <h3 style={styles.timeBlockHeading}>3:00 PM - 5:00</h3>
                     <p style={styles.timeBlockText}>Apply</p>
                 </div>
                 <div style={{ ...styles.timeBlock, ...styles.physical, opacity: 0.77 }}>
