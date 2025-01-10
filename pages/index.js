@@ -138,28 +138,6 @@ export default function Home() {
         <div className="title-section">
           <h1 className="app-title">📚✒️ Idea Logs</h1>
         </div>
-        <div
-          className="globe-interaction"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          <GlobeComponent size={150} onClick={inMeeting ? handleHomeClick : handleMeetDialogOpen} isHovering={isHovering} />
-          {isHovering && (
-            <span className="globe-text">
-              {inMeeting ? 'RETURN TO HOME' : 'JOIN MEET'}
-            </span>
-          )}
-        </div>
-        <div className="rightmost-section">
-          <div className="icon-with-text">
-            <button className="icon-button" onClick={() => setIsAuthDialogOpen(true)}>
-              👤
-            </button>
-            <span className="login-status">
-              {currentUser ? currentUser.name : 'Not logged in'}
-            </span>
-          </div>
-        </div>
       </div>
 
       {isAuthDialogOpen && (
